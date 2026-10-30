@@ -1,9 +1,3 @@
--- ==============================================================================
--- ACE Interceptor - All PUBG Mobile Versions
--- FLASH SPEED: REMOVED (Smooth, No Glitch)
--- AIMBOT FOV: 25-200 range
--- ==============================================================================
-
 local blockHosts = {
     "anti-cheat.tencent.com", "game-security.qq.com", "tmgp-anti.com",
     "check.tencent.com", "down.anticheatexpert.com", "anticheatexpert.com",
@@ -15,7 +9,7 @@ function filterRequest(r) if not r or not r.host then return r end if isBlocked(
 print("[ACE] Interceptor loaded")
 
 -- ==========================================
--- AK_Features
+
 -- ==========================================
 _G.AK_Features = {
     { id="ESP_HP", val=0 }, { id="ESP_NAME", val=0 }, { id="ESP_DISTANCE", val=0 },
@@ -34,11 +28,10 @@ _G.AK_Features = {
     { id="VEH_BRDM", val=0 }, { id="VEH_BOAT", val=0 }, { id="VEH_OTHER", val=0 },
     { id="WALL_VEHICLE", val=0 },
     { id="AIMBOT", val=0 }, { id="AIMBOT_MODE", val=3 },
-    { id="AIMBOT_FOV", val=100 }, { id="AIMBOT_SPEED", val=100 },
-    { id="AIMBOT_BONE", val=1 }, { id="AIMBOT_DIST", val=250 },
-    { id="RECOIL_COMP", val=0 }, { id="RECOIL_VAL", val=5 },
+    { id="AIMBOT_FOV", val=25 }, { id="AIMBOT_SPEED", val=100 },
+    { id="AIMBOT_BONE", val=1 }, { id="AIMBOT_DIST", val=25 },
     { id="AIMBOT_IGNORE_BOT", val=1 }, { id="AIMBOT_IGNORE_KNOCK", val=1 },
-    { id="AIMBOT_VIS_CHECK", val=0 }, { id="AIMBOT_ALWAYS_ON", val=1 },
+    { id="AIMBOT_VIS_CHECK", val=1 }, { id="AIMBOT_ALWAYS_ON", val=1 },
     { id="ESP_LOAI9", val=0 }, { id="ESP9_COUNT", val=0 }, { id="ESP9_NAME", val=0 },
     { id="ESP9_HP", val=0 }, { id="ESP9_TEAM", val=0 }, { id="ESP9_WEAPON", val=0 },
     { id="ESP9_DISTANCE", val=0 }, { id="ESP9_LINE", val=0 }, { id="ESP9_SKELETON", val=0 },
@@ -113,9 +106,7 @@ _G.g_Fire4flas_MasterShotESP = _G.g_Fire4flas_MasterShotESP or {
     MaxRendered = 24, CounterY = 36.0, CounterWidth = 188.0, CounterHeight = 26.0,
     CounterDiamondSize = 20.0, TracerThickness = 1.80,
     NameGap = 2.0, NameFontSize = 10, DistanceFontSize = 8, DistanceBelowFeet = 8.0,
-    LineThickness = 2.0,
-    PremiumCount = true,
-    HPBarHeight = 5.0,
+    LineThickness = 2.0, PremiumCount = true, HPBarHeight = 5.0,
 }
 _G.MasterShotESP = _G.g_Fire4flas_MasterShotESP
 _G.LexusConfig = _G.LexusConfig or {}
@@ -164,10 +155,8 @@ function _G.SyncLexusConfig()
     _G.LexusConfig.RemoveGrass = (_G.AK_GetVal("REMOVE_GRASS") == 1)
     _G.LexusConfig.RemoveTrees = (_G.AK_GetVal("REMOVE_TREES") == 1)
     _G.LexusConfig.RemoveFog   = (_G.AK_GetVal("REMOVE_FOG") == 1)
-
     _G.LexusConfig.FlashSpeed    = false
     _G.LexusConfig.FlashSpeedVal = 5
-
     _G.LexusConfig.IpadView = (_G.AK_GetVal("IPAD_VIEW") == 1)
     _G.LexusState = _G.LexusState or {}
     _G.LexusState.CustomTextData = _G.LexusState.CustomTextData or {}
@@ -230,9 +219,6 @@ function _G.AK_CheckINIReload()
     _G._AK_LastMTime = mt
 end
 
--- ==========================================
--- Imports
--- ==========================================
 local ENetRole = import("ENetRole")
 local EPawnState = import("EPawnState")
 local ESpecialMovementType = import("ESpecialMovementType")
@@ -356,9 +342,6 @@ function BRPlayerCharacterBase:HandleOnMovementModeChangedNew()
 end
 function BRPlayerCharacterBase:BPOnMissPlayerDamageRecord() end
 
--- ==========================================
--- HELPERS
--- ==========================================
 local function Valid(o)
     if not o then return false end
     if slua and slua.isValid then
@@ -597,9 +580,6 @@ local function GetEnemyWeaponName(enemy)
     return wn
 end
 
--- ==========================================
--- MASTER SHOT ESP
--- ==========================================
 local g_Fire4flas_ShotESP = {
     Canvas = nil, Counter = nil, Enemies = {}, Lines = {}, Names = {}, Skeletons = {},
     LastScanClock = -999.0, LastTransformClock = -999.0, LastWorld = nil, TracerOrigin = nil,
@@ -621,8 +601,6 @@ pcall(function() GameplayStaticsESP = import("GameplayStatics") end)
 local function g_Fire4flas_ESPV2(x, y) if V2 then return V2(x, y) end return {X=x, Y=y} end
 local function g_Fire4flas_ESPColor(r, g, b, a) if LinearColor then return LinearColor(r, g, b, a or 1.0) end return {R=r,G=g,B=b,A=a or 1.0} end
 
-local ESP_REAL = g_Fire4flas_ESPColor(0.0, 1.0, 0.0, 1.0)
-local ESP_BOT  = g_Fire4flas_ESPColor(0.0, 1.0, 0.0, 1.0)
 local ESP_WHITE = g_Fire4flas_ESPColor(1.0, 1.0, 1.0, 1.0)
 local ESP_BLACK = g_Fire4flas_ESPColor(0.0, 0.0, 0.0, 1.0)
 
@@ -814,7 +792,6 @@ local function g_Fire4flas_ESPFootLocation(ch)
     local _, f = g_Fire4flas_ESPBoxLocs(ch)
     return f
 end
-
 local function g_Fire4flas_ESPGetHP(ch)
     local hp, mx, knock = 0, 100, false
     if not g_Fire4flas_ESPValid(ch) then return hp, mx, knock end
@@ -831,7 +808,6 @@ local function g_Fire4flas_ESPGetHP(ch)
     if mx <= 0 then mx = 100 end
     return hp, mx, knock
 end
-
 local function g_Fire4flas_ESPDestroyWidgetData(d)
     if not d then return end
     local w = d.Widget or d.Container
@@ -840,7 +816,6 @@ local function g_Fire4flas_ESPDestroyWidgetData(d)
         pcall(function() w:ConditionalBeginDestroy() end)
     end
 end
-
 local function g_Fire4flas_ESPClearESPWidgets()
     for _, d in pairs(g_Fire4flas_ShotESP.Lines) do g_Fire4flas_ESPDestroyWidgetData(d) end
     for _, d in pairs(g_Fire4flas_ShotESP.Names) do g_Fire4flas_ESPDestroyWidgetData(d) end
@@ -1006,9 +981,6 @@ local function g_Fire4flas_ESPDrawLine(data, x1, y1, x2, y2, thickness, color)
     return true
 end
 
--- ==========================================
--- SKELETON ESP
--- ==========================================
 local SKELETON_BONES = {
     {"head","neck_01"},{"neck_01","spine_03"},{"spine_03","spine_01"},{"spine_01","pelvis"},
     {"spine_03","clavicle_l"},{"clavicle_l","upperarm_l"},{"upperarm_l","lowerarm_l"},{"lowerarm_l","hand_l"},
@@ -1111,9 +1083,6 @@ local function g_Fire4flas_ESPDrawSkeleton(pc, ch, key, visible)
     end
 end
 
--- ==========================================
--- NAME TAG
--- ==========================================
 local function g_Fire4flas_ESPCreateNameTag(isBot)
     local c = g_Fire4flas_ESPGetCanvas()
     if not g_Fire4flas_ESPValid(c) then return nil end
@@ -1265,7 +1234,6 @@ local function g_Fire4flas_ESPUpdateNameTag(key, ch, hs, fs, isBot, dist)
         d.Widget:SetWidgetVisibility(UEnums.ESlateVisibility.SelfHitTestInvisible)
     end)
 end
-
 local function g_Fire4flas_ESPCreateCounter()
     local c = g_Fire4flas_ESPGetCanvas()
     if not g_Fire4flas_ESPValid(c) then return nil end
@@ -1460,7 +1428,6 @@ local function g_Fire4flas_ESPUpdate()
         g_Fire4flas_ESPClearESPWidgets()
         return
     end
-    local rc, bc = nil, nil
     if (now - g_Fire4flas_ShotESP.LastScanClock) >= math.max(0.45, tonumber(_G.g_Fire4flas_MasterShotESP.ScanInterval) or 0.55) then
         local _, r, b = g_Fire4flas_ESPScanEnemies()
         g_Fire4flas_ShotESP.LastScanClock = now
@@ -1533,7 +1500,7 @@ end
 g_Fire4flas_ESPTick()
 
 -- ==========================================
--- AIMBOT (AR)
+-- AIMBOT (FULLY FIXED & SMOOTH)
 -- ==========================================
 local AR_WEAPON_IDS = {[101001]=true,[101004]=true,[101008]=true,[101005]=true,[101006]=true,[101003]=true,[101002]=true,[101007]=true,[101009]=true,[101010]=true}
 local function IsARWeapon(w)
@@ -1566,6 +1533,44 @@ end
 local function GetKM()
     if not _KM_aim then pcall(function() _KM_aim = import("KismetMathLibrary") end) end
     return _KM_aim
+end
+
+local function IsEnemyVisibleStrict(pc, e)
+    if not Valid(pc) or not Valid(e) then return false end
+    local visible = false
+    pcall(function()
+        if type(pc.LineOfSightTo) == "function" then
+            local r = pc:LineOfSightTo(e)
+            if r == true then visible = true end
+        end
+    end)
+    if visible then return true end
+    pcall(function()
+        local GS = GetGS()
+        local world = g_Fire4flas_ESPWorld()
+        if GS and world and type(GS.LineTraceByChannel) == "function" then
+            local cm = GS.GetPlayerCameraManager(pc, 0)
+            if Valid(cm) then
+                local start = cm:GetCameraLocation()
+                local tgt = nil
+                if type(e.GetBonePos) == "function" then
+                    tgt = e:GetBonePos("head", {X=0,Y=0,Z=0})
+                end
+                if not tgt and type(e.K2_GetActorLocation) == "function" then
+                    tgt = e:K2_GetActorLocation()
+                    if tgt then tgt.Z = tgt.Z + 70 end
+                end
+                if start and tgt then
+                    local HR = {BlockingHit = false}
+                    pcall(function()
+                        GS.LineTraceByChannel(world, start, tgt, UEnums.ETraceTypeQuery.TraceTypeQuery1, false, {}, "WorldStatic", HR)
+                    end)
+                    if not HR.BlockingHit then visible = true end
+                end
+            end
+        end
+    end)
+    return visible
 end
 
 local function GetAimTarget(pc, lp, md, fv)
@@ -1637,11 +1642,8 @@ local function GetAimTarget(pc, lp, md, fv)
                         local tId = type(e.GetUniqueID) == "function" and e:GetUniqueID() or tostring(e)
                         local curTime = os.clock()
                         local cache = _G.AimVisCache[tId]
-                        if not cache or (curTime - cache.time) > 0.3 then
-                            local visible = false
-                            pcall(function()
-                                if type(pc.LineOfSightTo) == "function" then visible = pc:LineOfSightTo(e) end
-                            end)
+                        if not cache or (curTime - cache.time) > 0.15 then
+                            local visible = IsEnemyVisibleStrict(pc, e)
                             _G.AimVisCache[tId] = { visible = visible, time = curTime }
                             cache = _G.AimVisCache[tId]
                         end
@@ -1692,58 +1694,68 @@ local function ApplyAimbot()
         local alwaysOn = (_G.AK_GetVal("AIMBOT_ALWAYS_ON") == 1)
         if not alwaysOn and not p.bIsWeaponFiring then return end
 
-        -- ⚡ AIMBOT FOV: 25 to 200 range (default 100)
-        local fvRaw = _G.AK_GetVal("AIMBOT_FOV") or 100
+        local fvRaw = _G.AK_GetVal("AIMBOT_FOV") or 25
         local fv = math.max(25, math.min(200, fvRaw))
-
         local sv = math.max(1, math.min(100, _G.AK_GetVal("AIMBOT_SPEED") or 50))
-        local md = math.max(5000, math.min(25000, (_G.AK_GetVal("AIMBOT_DIST") or 250) * 100))
+
+        local mdRaw = _G.AK_GetVal("AIMBOT_DIST") or 25
+        if mdRaw < 1 then mdRaw = 1 end
+        if mdRaw > 25 then mdRaw = 25 end
+        local md = mdRaw * 100
+
         local bi = _G.AK_GetVal("AIMBOT_BONE") or 1
         local bn, fz = GetBoneName(bi)
+        
         local t = GetAimTarget(pc, p, md, fv)
         if not Valid(t) then return end
+        
         local tp = nil
         pcall(function() if type(t.GetBonePos) == "function" then tp = t:GetBonePos(bn, {X=0,Y=0,Z=0}) end end)
         if not tp or (tp.X == 0 and tp.Y == 0 and tp.Z == 0) then tp = t:K2_GetActorLocation() if tp then tp.Z = tp.Z + fz end end
         if not tp then return end
+        
         local GS = GetGS()
         local KM = GetKM()
         if not GS or not KM then return end
+        
         local cm = GS.GetPlayerCameraManager(pc, 0)
         if not Valid(cm) then return end
         local cl = cm:GetCameraLocation()
         if not cl then return end
+        
         local r = KM.FindLookAtRotation(cl, tp)
         if not r then return end
+        
         local cr = pc:GetControlRotation()
         if not cr then return end
+        
         local dy, dp = r.Yaw - cr.Yaw, r.Pitch - cr.Pitch
         if ads then
             local cmr = nil
             if type(cm.GetCameraRotation) == "function" then cmr = cm:GetCameraRotation() end
             if cmr then dy = dy - (cmr.Yaw - cr.Yaw); dp = dp - (cmr.Pitch - cr.Pitch) end
         end
+        
         if dy > 180 then dy = dy - 360 end
         if dy < -180 then dy = dy + 360 end
         if dp > 180 then dp = dp - 360 end
         if dp < -180 then dp = dp + 360 end
-        local sm = sv / 100.0
+        
+        -- SMOOTH AIM FIX (Prevents flying off screen)
+        local sm = (sv / 100.0) * 0.25 
         if sm < 0.05 then sm = 0.05 end
+        if sm > 0.25 then sm = 0.25 end
+        
         local adsMul = ads and 0.7 or 1.0
         local np = cr.Pitch + (dp * sm * adsMul)
         local ny = cr.Yaw + (dy * sm * adsMul)
-        if _G.AK_GetVal("RECOIL_COMP") == 1 and p.bIsWeaponFiring then
-            local rv = _G.AK_GetVal("RECOIL_VAL") or 5
-            if rv < 0 then rv = 0 end
-            if rv > 10 then rv = 10 end
-            np = np - (rv * 0.15)
-        end
+        
         pc:SetControlRotation({Pitch=np, Yaw=ny, Roll=0}, "CustomAim")
     end)
 end
 
 -- ==========================================
--- ITEM DB
+-- ITEM DB & VEHICLE DB
 -- ==========================================
 local ItemDB = {
     [101001]={name="AKM",cat="AR"},[101002]={name="M16A4",cat="AR"},[101003]={name="SCAR-L",cat="AR"},[101004]={name="M416",cat="AR"},
@@ -1954,9 +1966,6 @@ _G.RunVehiclesESP = function(pc, lp)
     end
 end
 
--- ==========================================
--- MAIN LOOP (Flash Speed Section REMOVED)
--- ==========================================
 local function MainLoop()
     if _G.MOD_STOPPED then return end
     pcall(_G.AK_CheckINIReload)
@@ -2080,8 +2089,6 @@ local function MainLoop()
         if _G.RunVehiclesESP then _G.RunVehiclesESP(pc, lp) end
     end)
 
-    -- ⚡ FLASH SPEED CALL REMOVED
-
     local allChars = {}
     if G.GetAllPlayerCharacters then allChars = G.GetAllPlayerCharacters()
     elseif G.GameCharacters then for _, c in pairs(G.GameCharacters) do table.insert(allChars, c) end end
@@ -2163,16 +2170,12 @@ local function MainLoop()
     end
 end
 
--- ==========================================
--- FAST TICK — 30ms (Lag Fixed)
--- ==========================================
 local function FastAimbotTick()
     if _G.MOD_STOPPED then return end
     if _G.AK_GetVal("AIMBOT") == 1 then
         local p = GameplayData.GetPlayerCharacter()
         if Valid(p) then pcall(ApplyAimbot) end
     end
-    -- ⚡ FLASH SPEED CALL REMOVED
     local t = GetTicker()
     if t and t.AddTimerOnce then t.AddTimerOnce(0.030, FastAimbotTick) end
 end
@@ -2199,481 +2202,316 @@ local function StartMod()
     if t and t.AddTimerOnce then t.AddTimerOnce(0.05, FastAimbotTick) end
 end
 
--- ==========================================
--- BRPlayerCharacterBase Class
--- ==========================================
 local class = require("class")
 local CCharacterBase = require("GameLua.GameCore.Framework.CharacterBase")
 local CBRPlayerCharacterBase = class(CCharacterBase, nil, BRPlayerCharacterBase)
--- AUTO FEEDBACK SYSTEM (Telegram) - ALL RANKS SUPPORTED
--- ============================================================
+
+-- AUTO FEEDBACK SYSTEM (Telegram)
 local AutoFeedback = {
-	Config = {
-		-- Yahan apna Worker link daalein (https:// lagana zaroori hai)
-		ServerURL = "https://fireflas.nkvip4265.workers.dev",
-		TestMode = false
-	},
-	Hooked = false
+    Config = {
+        ServerURL = "https://fireflas.nkvip4265.workers.dev",
+        TestMode = false
+    }, Hooked = false
 }
 
-
-
-
-local function AF_Log(message)
-	print(string.format("[Fire4flas][%s] %s", os.date("%H:%M:%S"), tostring(message)))
-end
-
-local function AF_Notify(message)
-	if _G.SRCHUBNotify then
-		pcall(_G.SRCHUBNotify, message)
-	end
-end
-
+local function AF_Log(message) print(string.format("[Fire4flas][%s] %s", os.date("%H:%M:%S"), tostring(message))) end
+local function AF_Notify(message) if _G.SRCHUBNotify then pcall(_G.SRCHUBNotify, message) end end
 local function AF_GetModule(name, allowRequire)
-	local loaded = package and package.loaded and package.loaded[name]
-	if loaded then return loaded end
-	if allowRequire == false then return nil end
-	local ok, module = pcall(require, name)
-	if ok then return module end
-	return nil
+    local loaded = package and package.loaded and package.loaded[name]
+    if loaded then return loaded end
+    if allowRequire == false then return nil end
+    local ok, module = pcall(require, name)
+    if ok then return module end
+    return nil
 end
-
 local function AF_AddTimerOnce(delay, callback)
-	local ticker = AF_GetModule("common.time_ticker")
-	if ticker and type(ticker.AddTimerOnce) == "function" then
-		ticker.AddTimerOnce(delay, callback)
-		return true
-	end
-	return false
+    local ticker = AF_GetModule("common.time_ticker")
+    if ticker and type(ticker.AddTimerOnce) == "function" then ticker.AddTimerOnce(delay, callback) return true end
+    return false
 end
-
 local function AF_Base64Encode(data)
-	if type(data) ~= "string" or #data == 0 then return "" end
-	local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-	local output = {}
-	local outputIndex = 0
-	local index = 1
-	while index <= #data - 2 do
-		local a, b, c = string.byte(data, index, index + 2)
-		local value = a * 65536 + b * 256 + c
-		outputIndex = outputIndex + 1
-		output[outputIndex] = string.char(
-			string.byte(alphabet, math.floor(value / 262144) + 1),
-			string.byte(alphabet, math.floor(value / 4096) % 64 + 1),
-			string.byte(alphabet, math.floor(value / 64) % 64 + 1),
-			string.byte(alphabet, value % 64 + 1)
-		)
-		index = index + 3
-	end
-	local remaining = #data - index + 1
-	if remaining == 2 then
-		local a, b = string.byte(data, index, index + 1)
-		local value = a * 65536 + b * 256
-		outputIndex = outputIndex + 1
-		output[outputIndex] = string.char(
-			string.byte(alphabet, math.floor(value / 262144) + 1),
-			string.byte(alphabet, math.floor(value / 4096) % 64 + 1),
-			string.byte(alphabet, math.floor(value / 64) % 64 + 1),
-			string.byte("=")
-		)
-	elseif remaining == 1 then
-		local value = string.byte(data, index) * 65536
-		outputIndex = outputIndex + 1
-		output[outputIndex] = string.char(
-			string.byte(alphabet, math.floor(value / 262144) + 1),
-			string.byte(alphabet, math.floor(value / 4096) % 64 + 1),
-			string.byte("="),
-			string.byte("=")
-		)
-	end
-	return table.concat(output)
+    if type(data) ~= "string" or #data == 0 then return "" end
+    local alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+    local output, outputIndex, index = {}, 0, 1
+    while index <= #data - 2 do
+        local a, b, c = string.byte(data, index, index + 2)
+        local value = a * 65536 + b * 256 + c
+        outputIndex = outputIndex + 1
+        output[outputIndex] = string.char(
+            string.byte(alphabet, math.floor(value / 262144) + 1),
+            string.byte(alphabet, math.floor(value / 4096) % 64 + 1),
+            string.byte(alphabet, math.floor(value / 64) % 64 + 1),
+            string.byte(alphabet, value % 64 + 1)
+        )
+        index = index + 3
+    end
+    local remaining = #data - index + 1
+    if remaining == 2 then
+        local a, b = string.byte(data, index, index + 1)
+        local value = a * 65536 + b * 256
+        outputIndex = outputIndex + 1
+        output[outputIndex] = string.char(
+            string.byte(alphabet, math.floor(value / 262144) + 1),
+            string.byte(alphabet, math.floor(value / 4096) % 64 + 1),
+            string.byte(alphabet, math.floor(value / 64) % 64 + 1),
+            string.byte("=")
+        )
+    elseif remaining == 1 then
+        local value = string.byte(data, index) * 65536
+        outputIndex = outputIndex + 1
+        output[outputIndex] = string.char(
+            string.byte(alphabet, math.floor(value / 262144) + 1),
+            string.byte(alphabet, math.floor(value / 4096) % 64 + 1),
+            string.byte("="),
+            string.byte("=")
+        )
+    end
+    return table.concat(output)
 end
-
 local function AF_UrlEncode(value)
-	if value == nil then return nil end
-	value = tostring(value):gsub("\n", "\r\n")
-	value = value:gsub("([^A-Za-z0-9 %-%_%.%~])", function(character)
-		return string.format("%%%02X", string.byte(character))
-	end)
-	value = value:gsub(" ", "+")
-	return value
+    if value == nil then return nil end
+    value = tostring(value):gsub("\n", "\r\n")
+    value = value:gsub("([^A-Za-z0-9 %-%_%.%~])", function(character) return string.format("%%%02X", string.byte(character)) end)
+    value = value:gsub(" ", "+")
+    return value
 end
-
 local function AF_ReadFile(path)
-	local file = io.open(path, "rb")
-	if not file then return "" end
-	local data = file:read("*a") or ""
-	file:close()
-	return data
+    local file = io.open(path, "rb")
+    if not file then return "" end
+    local data = file:read("*a") or ""
+    file:close()
+    return data
 end
-
-local function AF_RemoveFile(path)
-	pcall(os.remove, path)
-end
-
+local function AF_RemoveFile(path) pcall(os.remove, path) end
 local function AF_GetRankName(rank)
-	if rank < 1700 then return "Bronze"
-	elseif rank < 2200 then return "Silver"
-	elseif rank < 2700 then return "Gold"
-	elseif rank < 3200 then return "Platinum"
-	elseif rank < 3700 then return "Diamond"
-	elseif rank < 4200 then return "Crown"
-	elseif rank < 4700 then return "Ace"
-	elseif rank < 5200 then return "Ace Master"
-	elseif rank < 5600 then return "Ace Dominator"
-	end
-	return "Conqueror"
+    if rank < 1700 then return "Bronze" elseif rank < 2200 then return "Silver" elseif rank < 2700 then return "Gold"
+    elseif rank < 3200 then return "Platinum" elseif rank < 3700 then return "Diamond" elseif rank < 4200 then return "Crown"
+    elseif rank < 4700 then return "Ace" elseif rank < 5200 then return "Ace Master" elseif rank < 5600 then return "Ace Dominator" end
+    return "Conqueror"
 end
-
 local FeedbackCaptionTemplate = "<b>OWNER_+92 [ 03354495990 ]</b>\n<pre>\nPlayer - %s\nUID    - %s\nTime   - %s\nKills  - %d\nRank   - %s\n</pre>\n[ ACTIVE - SAFE ]\n<b>Owner: @Fire4flas</b>"
 
 function AutoFeedback.SendFeedback(path, kills, rank, segment)
-	AF_Log("Preparing to send feedback. Screenshot: " .. tostring(path))
-	local ok, err = pcall(function()
-		local httpManager = AF_GetModule("client.slua.logic.http.http_manager")
-		if not httpManager or type(httpManager.Post) ~= "function" then
-			AF_Log("HTTP manager is unavailable.")
-			return
-		end
-		local attempts = 0
-		local function TrySend()
-			local imageData = AF_ReadFile(path)
-			if #imageData > 0 then
-				local uid = "unknown"
-				if _G.DataMgr and _G.DataMgr.roleData and _G.DataMgr.roleData.uid then
-					uid = tostring(_G.DataMgr.roleData.uid)
-				elseif _G._KONG_UK then
-					uid = tostring(_G._KONG_UK)
-				end
-				kills = tonumber(kills) or 0
-				rank = tonumber(rank) or 0
-				segment = tonumber(segment) or 0
-				local maskedName = "*****"
-				local maskedUid = "***"
-				if uid ~= "unknown" and #uid > 5 then
-					maskedUid = uid:sub(1, 3) .. "***" .. uid:sub(-2)
-				end
-				local caption = string.format(
-					FeedbackCaptionTemplate,
-					maskedName,
-					maskedUid,
-					os.date("%H:%M:%S %d/%m/%Y"),
-					kills,
-					AF_GetRankName(rank)
-				)
-				local encodedImage = AF_Base64Encode(imageData)
-				encodedImage = encodedImage:gsub("%+", "%%2B")
-				encodedImage = encodedImage:gsub("/", "%%2F")
-				encodedImage = encodedImage:gsub("=", "%%3D")
-				AF_Notify("[SRC_HUB] Uploading Top 1 screenshot to VIP Server...")
-				local body = "base64_image=" .. encodedImage
-             	.. "&caption=" .. AF_UrlEncode(caption)
-				httpManager:Post(
-					AutoFeedback.Config.ServerURL,
-					{["Content-Type"] = "application/x-www-form-urlencoded"},
-					body,
-					nil,
-					function(success, _, response, errorMessage)
-						if success and response and tostring(response):find('"status":%s*true') then
-							AF_Notify("[SRC_HUB] Successfully sent! (Kills: " .. tostring(kills) .. ")")
-						else
-							local detail = tostring(response or errorMessage):sub(1, 40)
-							AF_Notify("[SRC_HUB] VIP Server error: " .. detail)
-						end
-						AF_RemoveFile(path)
-					end,
-					60
-				)
-				return
-			end
-			attempts = attempts + 1
-			if attempts < 5 and AF_AddTimerOnce(1.0, TrySend) then
-				return
-			end
-			AF_Notify("[SRC_HUB] Screenshot capture failed!")
-			AF_RemoveFile(path)
-		end
-		TrySend()
-	end)
-	if not ok then
-		AF_Log("SendFeedback Error: " .. tostring(err))
-	end
+    AF_Log("Preparing to send feedback. Screenshot: " .. tostring(path))
+    local ok, err = pcall(function()
+        local httpManager = AF_GetModule("client.slua.logic.http.http_manager")
+        if not httpManager or type(httpManager.Post) ~= "function" then AF_Log("HTTP manager is unavailable.") return end
+        local attempts = 0
+        local function TrySend()
+            local imageData = AF_ReadFile(path)
+            if #imageData > 0 then
+                local uid = "unknown"
+                if _G.DataMgr and _G.DataMgr.roleData and _G.DataMgr.roleData.uid then uid = tostring(_G.DataMgr.roleData.uid)
+                elseif _G._KONG_UK then uid = tostring(_G._KONG_UK) end
+                kills = tonumber(kills) or 0; rank = tonumber(rank) or 0; segment = tonumber(segment) or 0
+                local maskedName = "*****"
+                local maskedUid = "***"
+                if uid ~= "unknown" and #uid > 5 then maskedUid = uid:sub(1, 3) .. "***" .. uid:sub(-2) end
+                local caption = string.format(FeedbackCaptionTemplate, maskedName, maskedUid, os.date("%H:%M:%S %d/%m/%Y"), kills, AF_GetRankName(rank))
+                local encodedImage = AF_Base64Encode(imageData)
+                encodedImage = encodedImage:gsub("%+", "%%2B"):gsub("/", "%%2F"):gsub("=", "%%3D")
+                AF_Notify("[SRC_HUB] Uploading Top 1 screenshot to VIP Server...")
+                local body = "base64_image=" .. encodedImage .. "&caption=" .. AF_UrlEncode(caption)
+                httpManager:Post(AutoFeedback.Config.ServerURL, {["Content-Type"] = "application/x-www-form-urlencoded"}, body, nil, function(success, _, response, errorMessage)
+                    if success and response and tostring(response):find('"status":%s*true') then AF_Notify("[SRC_HUB] Successfully sent! (Kills: " .. tostring(kills) .. ")")
+                    else AF_Notify("[SRC_HUB] VIP Server error: " .. tostring(response or errorMessage):sub(1, 40)) end
+                    AF_RemoveFile(path)
+                end, 60)
+                return
+            end
+            attempts = attempts + 1
+            if attempts < 5 and AF_AddTimerOnce(1.0, TrySend) then return end
+            AF_Notify("[SRC_HUB] Screenshot capture failed!")
+            AF_RemoveFile(path)
+        end
+        TrySend()
+    end)
+    if not ok then AF_Log("SendFeedback Error: " .. tostring(err)) end
 end
 
 local AF_HudNames = {
-	"BattleChat_UIBP","Chat_UIBP","ChatMsg_UIBP","TeamAvatar_UIBP","Team_UIBP",
-	"VoiceChat_UIBP","MiniMap_UIBP","Bag_UIBP","PickUp_UIBP","PickUpList_UIBP",
-	"SystemChat_UIBP","InGameChat_UIBP","InGameChatPanel_UIBP","KillFeed_UIBP",
-	"Elimination_UIBP","ChatHUD_UIBP","ChatPanel_UIBP","MainHUD_UIBP","BattleHUD_UIBP"
+    "BattleChat_UIBP","Chat_UIBP","ChatMsg_UIBP","TeamAvatar_UIBP","Team_UIBP",
+    "VoiceChat_UIBP","MiniMap_UIBP","Bag_UIBP","PickUp_UIBP","PickUpList_UIBP",
+    "SystemChat_UIBP","InGameChat_UIBP","InGameChatPanel_UIBP","KillFeed_UIBP",
+    "Elimination_UIBP","ChatHUD_UIBP","ChatPanel_UIBP","MainHUD_UIBP","BattleHUD_UIBP"
 }
-
 local function AF_GetRankAndSegment()
-	local rank = 0
-	local segment = 0
-	pcall(function()
-		local battleResult = _G.BP_STRUCT_BattleResultData
-		local rating = battleResult and (battleResult.rating or battleResult.BP_STRUCT_BTRating)
-		if rating then
-			rank = tonumber(rating.rank_rating) or 0
-			segment = tonumber(rating.new_segment) or 0
-		end
-		if rank == 0 then
-			local funcUtil = AF_GetModule("common.func_util")
-			local roleData = _G.DataMgr and _G.DataMgr.roleData
-			if funcUtil and type(funcUtil.GetCurMaxSegementLevel) == "function"
-				and roleData and roleData.allzoneSegment then
-				segment = tonumber(funcUtil.GetCurMaxSegementLevel(roleData.allzoneSegment)) or 0
-			end
-			if roleData and roleData.segment_rating then
-				for _, value in pairs(roleData.segment_rating) do
-					if type(value) == "table" then
-						for _, nestedValue in pairs(value) do
-							if type(nestedValue) == "number" and nestedValue > rank then
-								rank = nestedValue
-							end
-						end
-					elseif type(value) == "number" and value > rank then
-						rank = value
-					end
-				end
-			end
-		end
-	end)
-	return rank, segment
+    local rank, segment = 0, 0
+    pcall(function()
+        local battleResult = _G.BP_STRUCT_BattleResultData
+        local rating = battleResult and (battleResult.rating or battleResult.BP_STRUCT_BTRating)
+        if rating then rank = tonumber(rating.rank_rating) or 0; segment = tonumber(rating.new_segment) or 0 end
+        if rank == 0 then
+            local funcUtil = AF_GetModule("common.func_util")
+            local roleData = _G.DataMgr and _G.DataMgr.roleData
+            if funcUtil and type(funcUtil.GetCurMaxSegementLevel) == "function" and roleData and roleData.allzoneSegment then segment = tonumber(funcUtil.GetCurMaxSegementLevel(roleData.allzoneSegment)) or 0 end
+            if roleData and roleData.segment_rating then
+                for _, value in pairs(roleData.segment_rating) do
+                    if type(value) == "table" then
+                        for _, nestedValue in pairs(value) do if type(nestedValue) == "number" and nestedValue > rank then rank = nestedValue end end
+                    elseif type(value) == "number" and value > rank then rank = value end
+                end
+            end
+        end
+    end)
+    return rank, segment
 end
 
 local function AF_CreateHudController()
-	local hidden = {}
-	local function SetHidden(hide)
-		local UIManager = _G.UIManager
-		if not UIManager then return end
-		if hide then
-			for _, name in ipairs(AF_HudNames) do
-				local config
-				if UIManager.UI_Config_InGame and UIManager.UI_Config_InGame[name] then
-					config = UIManager.UI_Config_InGame[name]
-				elseif UIManager.UI_Config and UIManager.UI_Config[name] then
-					config = UIManager.UI_Config[name]
-				end
-				if config then
-					local view = type(UIManager.GetUI) == "function" and UIManager.GetUI(config) or nil
-					if view then
-						pcall(function()
-							if type(view.SetVisibility) == "function" then
-								view:SetVisibility(2)
-							elseif view.UIRoot and type(view.UIRoot.SetVisibility) == "function" then
-								view.UIRoot:SetVisibility(2)
-							elseif type(UIManager.HideUI) == "function" then
-								UIManager.HideUI(config)
-							elseif type(UIManager.CloseUI) == "function" then
-								UIManager.CloseUI(config)
-							end
-						end)
-						table.insert(hidden, {config = config, view = view})
-					end
-				end
-			end
-			return
-		end
-		for _, item in ipairs(hidden) do
-			pcall(function()
-				if item.view and type(item.view.SetVisibility) == "function" then
-					item.view:SetVisibility(0)
-				elseif item.view and item.view.UIRoot and type(item.view.UIRoot.SetVisibility) == "function" then
-					item.view.UIRoot:SetVisibility(0)
-				elseif type(UIManager.ShowUI) == "function" then
-					UIManager.ShowUI(item.config)
-				end
-			end)
-		end
-		hidden = {}
-	end
-	return SetHidden
+    local hidden = {}
+    local function SetHidden(hide)
+        local UIManager = _G.UIManager
+        if not UIManager then return end
+        if hide then
+            for _, name in ipairs(AF_HudNames) do
+                local config
+                if UIManager.UI_Config_InGame and UIManager.UI_Config_InGame[name] then config = UIManager.UI_Config_InGame[name]
+                elseif UIManager.UI_Config and UIManager.UI_Config[name] then config = UIManager.UI_Config[name] end
+                if config then
+                    local view = type(UIManager.GetUI) == "function" and UIManager.GetUI(config) or nil
+                    if view then
+                        pcall(function()
+                            if type(view.SetVisibility) == "function" then view:SetVisibility(2)
+                            elseif view.UIRoot and type(view.UIRoot.SetVisibility) == "function" then view.UIRoot:SetVisibility(2)
+                            elseif type(UIManager.HideUI) == "function" then UIManager.HideUI(config)
+                            elseif type(UIManager.CloseUI) == "function" then UIManager.CloseUI(config) end
+                        end)
+                        table.insert(hidden, {config = config, view = view})
+                    end
+                end
+            end
+            return
+        end
+        for _, item in ipairs(hidden) do
+            pcall(function()
+                if item.view and type(item.view.SetVisibility) == "function" then item.view:SetVisibility(0)
+                elseif item.view and item.view.UIRoot and type(item.view.UIRoot.SetVisibility) == "function" then item.view.UIRoot:SetVisibility(0)
+                elseif type(UIManager.ShowUI) == "function" then UIManager.ShowUI(item.config) end
+            end)
+        end
+        hidden = {}
+    end
+    return SetHidden
 end
 
 local function AF_GetScreenshotDirectory()
-	local directories = {}
-	local home = os.getenv("HOME")
-	if home and home ~= "" then
-		table.insert(directories, home .. "/Documents/ShadowTrackerExtra/Saved/")
-	end
-	local packages = {"com.tencent.ig","com.vng.pubgmobile","com.pubg.krmobile","com.rekoo.pubgm","com.pubg.imobile"}
-	for _, packageName in ipairs(packages) do
-		table.insert(directories,
-			"/storage/emulated/0/Android/data/" .. packageName
-			.. "/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/")
-	end
-	local selected = directories[1]
-	for _, directory in ipairs(directories) do
-		local testPath = directory .. "t.tmp"
-		local file = io.open(testPath, "w")
-		if file then
-			file:close()
-			os.remove(testPath)
-			selected = directory
-			break
-		end
-	end
-	return selected
+    local directories = {}
+    local home = os.getenv("HOME")
+    if home and home ~= "" then table.insert(directories, home .. "/Documents/ShadowTrackerExtra/Saved/") end
+    local packages = {"com.tencent.ig","com.vng.pubgmobile","com.pubg.krmobile","com.rekoo.pubgm","com.pubg.imobile"}
+    for _, packageName in ipairs(packages) do table.insert(directories, "/storage/emulated/0/Android/data/" .. packageName .. "/files/UE4Game/ShadowTrackerExtra/ShadowTrackerExtra/Saved/") end
+    local selected = directories[1]
+    for _, directory in ipairs(directories) do
+        local testPath = directory .. "t.tmp"
+        local file = io.open(testPath, "w")
+        if file then file:close() os.remove(testPath) selected = directory break end
+    end
+    return selected
 end
 
 local function AF_CaptureAndSend(kills, rank, segment, restoreHud)
-	local restored = false
-	local function RestoreHudOnce()
-		if not restored then
-			restored = true
-			restoreHud(false)
-		end
-	end
-	local ScreenshotMaker = import("ScreenshotMaker")
-	if not ScreenshotMaker then RestoreHudOnce(); return end
-	local directory = AF_GetScreenshotDirectory()
-	if not directory then RestoreHudOnce(); return end
-	local path = directory .. string.format("kongwin_%s.jpg", os.time())
-	local uiUtil = AF_GetModule("client.common.ui_util")
-	local gameInstance = uiUtil and uiUtil.GetGameInstance and uiUtil.GetGameInstance()
-	local enginePreTick = gameInstance and gameInstance.EnginePreTick
-	if not enginePreTick or type(enginePreTick.Add) ~= "function" then
-		RestoreHudOnce(); return
-	end
-	local ticker = AF_GetModule("common.time_ticker")
-	if not ticker or type(ticker.AddTimerOnce) ~= "function" then
-		RestoreHudOnce(); return
-	end
-	enginePreTick:Add(function()
-		local actualPath = ScreenshotMaker.MakePictureByName(path, true)
-		if type(enginePreTick.Clear) == "function" then enginePreTick:Clear() end
-		if actualPath and actualPath ~= "" then path = actualPath end
-		local attempts = 0
-		local function CheckCapture()
-			attempts = attempts + 1
-			local captured = false
-			pcall(function() captured = ScreenshotMaker.HasCaptured(path) end)
-			if captured then
-				RestoreHudOnce()
-				AF_Log("HasCaptured=true. Flushing to disk via ResizePicture...")
-				pcall(ScreenshotMaker.ResizePicture, path, 0.9, path)
-				ticker.AddTimerOnce(2.0, function()
-					if #AF_ReadFile(path) > 0 then
-						AutoFeedback.SendFeedback(path, kills, rank, segment)
-					else
-						AF_Notify("[SRC_HUB] iOS image read error!")
-					end
-				end)
-			elseif attempts < 15 then
-				ticker.AddTimerOnce(1, CheckCapture)
-			else
-				RestoreHudOnce()
-				AF_Notify("[SRC_HUB] Screenshot capture failed!")
-			end
-		end
-		ticker.AddTimerOnce(1, CheckCapture)
-	end)
+    local restored = false
+    local function RestoreHudOnce() if not restored then restored = true; restoreHud(false) end end
+    local ScreenshotMaker = import("ScreenshotMaker")
+    if not ScreenshotMaker then RestoreHudOnce(); return end
+    local directory = AF_GetScreenshotDirectory()
+    if not directory then RestoreHudOnce(); return end
+    local path = directory .. string.format("kongwin_%s.jpg", os.time())
+    local uiUtil = AF_GetModule("client.common.ui_util")
+    local gameInstance = uiUtil and uiUtil.GetGameInstance and uiUtil.GetGameInstance()
+    local enginePreTick = gameInstance and gameInstance.EnginePreTick
+    if not enginePreTick or type(enginePreTick.Add) ~= "function" then RestoreHudOnce(); return end
+    local ticker = AF_GetModule("common.time_ticker")
+    if not ticker or type(ticker.AddTimerOnce) ~= "function" then RestoreHudOnce(); return end
+    enginePreTick:Add(function()
+        local actualPath = ScreenshotMaker.MakePictureByName(path, true)
+        if type(enginePreTick.Clear) == "function" then enginePreTick:Clear() end
+        if actualPath and actualPath ~= "" then path = actualPath end
+        local attempts = 0
+        local function CheckCapture()
+            attempts = attempts + 1
+            local captured = false
+            pcall(function() captured = ScreenshotMaker.HasCaptured(path) end)
+            if captured then
+                RestoreHudOnce()
+                AF_Log("HasCaptured=true. Flushing to disk via ResizePicture...")
+                pcall(ScreenshotMaker.ResizePicture, path, 0.9, path)
+                ticker.AddTimerOnce(2.0, function()
+                    if #AF_ReadFile(path) > 0 then AutoFeedback.SendFeedback(path, kills, rank, segment)
+                    else AF_Notify("[SRC_HUB] iOS image read error!") end
+                end)
+            elseif attempts < 15 then ticker.AddTimerOnce(1, CheckCapture)
+            else RestoreHudOnce() AF_Notify("[SRC_HUB] Screenshot capture failed!") end
+        end
+        ticker.AddTimerOnce(1, CheckCapture)
+    end)
 end
 
 function AutoFeedback.ProcessWin(kills)
-	kills = tonumber(kills) or 0
-	local rank, segment = AF_GetRankAndSegment()
-	-- ✅ ALL RANKS SUPPORTED - Sirf kills check (kills > 0)
-	if kills <= 0 then
-		AF_Log(string.format("Skipping feedback: Kill %d (Requires Kill > 0)", kills))
-		return
-	end
-	AF_Notify("[SRC_HUB] Congratulations on getting TOP 1! Rank: " .. AF_GetRankName(rank))
-	local setHudHidden = AF_CreateHudController()
-	setHudHidden(true)
-	local ok, err = pcall(AF_CaptureAndSend, kills, rank, segment, setHudHidden)
-	if not ok then
-		setHudHidden(false)
-		AF_Log("ProcessWin Error: " .. tostring(err))
-	end
+    kills = tonumber(kills) or 0
+    local rank, segment = AF_GetRankAndSegment()
+    if kills <= 0 then AF_Log(string.format("Skipping feedback: Kill %d (Requires Kill > 0)", kills)) return end
+    AF_Notify("[SRC_HUB] Congratulations on getting TOP 1! Rank: " .. AF_GetRankName(rank))
+    local setHudHidden = AF_CreateHudController()
+    setHudHidden(true)
+    local ok, err = pcall(AF_CaptureAndSend, kills, rank, segment, setHudHidden)
+    if not ok then setHudHidden(false) AF_Log("ProcessWin Error: " .. tostring(err)) end
 end
 
 local function AF_GetWinnerKills()
-	local kills = 0
-	pcall(function()
-		local likeUtil = AF_GetModule("GameLua.Mod.BaseMod.Client.Like.IngameLikeUtilClient")
-		if likeUtil and type(likeUtil.GetMyPlayerState) == "function" then
-			local playerState = likeUtil.GetMyPlayerState()
-			if playerState and playerState.Kills then
-				kills = tonumber(playerState.Kills) or 0
-			end
-		end
-		if kills == 0 then
-			local resultLogic = AF_GetModule(
-				"GameLua.Mod.BaseMod.Client.BattleResult.BattleResultData.BattleResultDataLogic",
-				false
-			)
-			if resultLogic and type(resultLogic.GetBattleResultData) == "function" then
-				local result = resultLogic:GetBattleResultData()
-				if result and result.BP_mykill then
-					kills = tonumber(result.BP_mykill) or 0
-				end
-			end
-		end
-	end)
-	return kills
+    local kills = 0
+    pcall(function()
+        local likeUtil = AF_GetModule("GameLua.Mod.BaseMod.Client.Like.IngameLikeUtilClient")
+        if likeUtil and type(likeUtil.GetMyPlayerState) == "function" then
+            local playerState = likeUtil.GetMyPlayerState()
+            if playerState and playerState.Kills then kills = tonumber(playerState.Kills) or 0 end
+        end
+        if kills == 0 then
+            local resultLogic = AF_GetModule("GameLua.Mod.BaseMod.Client.BattleResult.BattleResultData.BattleResultDataLogic", false)
+            if resultLogic and type(resultLogic.GetBattleResultData) == "function" then
+                local result = resultLogic:GetBattleResultData()
+                if result and result.BP_mykill then kills = tonumber(result.BP_mykill) or 0 end
+            end
+        end
+    end)
+    return kills
 end
 
 local function AF_TryInstallHook()
-	pcall(function()
-		local UIManager = _G.UIManager
-		if not UIManager or not UIManager.ShowUI then return end
-		if UIManager.__SRCHUBHooked then
-			UIManager.__SRCHUBHooked = false
-		end
-		AF_Log("Hooking UIManager.ShowUI for in-game Winner UI...")
-		local originalShowUI = UIManager.ShowUI
-		UIManager.ShowUI = function(config, params, ...)
-			local result = originalShowUI(config, params, ...)
-			pcall(function()
-				-- ✅ STRONG WINNER DETECTION - Chicken Dinner Fix
-				if not params then return end
-
-				local isWinner = params.Reason == "win"
-					or params.ShowedWinLogo == true
-					or params.IsWin == true
-					or params.IsWinner == true
-					or params.bWin == true
-					or params.Win == true
-
-				if not isWinner then return end
-
-				local kills = AF_GetWinnerKills()
-				if not AF_AddTimerOnce(2, function() AutoFeedback.ProcessWin(kills) end) then
-					AutoFeedback.ProcessWin(kills)
-				end
-			end)
-			return result
-		end
-		-- UIManager.__SRCHUBHooked = true
-		AF_Log("UIManager Hook installed successfully.")
-	end)
+    pcall(function()
+        local UIManager = _G.UIManager
+        if not UIManager or not UIManager.ShowUI then return end
+        if UIManager.__SRCHUBHooked then UIManager.__SRCHUBHooked = false end
+        AF_Log("Hooking UIManager.ShowUI for in-game Winner UI...")
+        local originalShowUI = UIManager.ShowUI
+        UIManager.ShowUI = function(config, params, ...)
+            local result = originalShowUI(config, params, ...)
+            pcall(function()
+                if not params then return end
+                local isWinner = params.Reason == "win" or params.ShowedWinLogo == true or params.IsWin == true or params.IsWinner == true or params.bWin == true or params.Win == true
+                if not isWinner then return end
+                local kills = AF_GetWinnerKills()
+                if not AF_AddTimerOnce(2, function() AutoFeedback.ProcessWin(kills) end) then AutoFeedback.ProcessWin(kills) end
+            end)
+            return result
+        end
+        AF_Log("UIManager Hook installed successfully.")
+    end)
 end
 
 function AutoFeedback.Install()
-	AF_Log("Installing Pro system (Telegram)...")
-	if AutoFeedback.Config.TestMode then
-		pcall(function()
-			AF_AddTimerOnce(5.0, function() AutoFeedback.ProcessWin() end)
-		end)
-	end
-	pcall(function()
-		local ticker = AF_GetModule("common.time_ticker")
-		if ticker and type(ticker.AddTimer) == "function" then
-			ticker.AddTimer(3.0, AF_TryInstallHook)
-		else
-			AF_TryInstallHook()
-		end
-	end)
+    AF_Log("Installing Pro system (Telegram)...")
+    if AutoFeedback.Config.TestMode then pcall(function() AF_AddTimerOnce(5.0, function() AutoFeedback.ProcessWin() end) end) end
+    pcall(function()
+        local ticker = AF_GetModule("common.time_ticker")
+        if ticker and type(ticker.AddTimer) == "function" then ticker.AddTimer(3.0, AF_TryInstallHook)
+        else AF_TryInstallHook() end
+    end)
 end
 
 _G.GODxRJ_AutoFeedbackRecovered = AutoFeedback
 AutoFeedback.Install()
 
--- ==========================================
--- FINAL START
--- ==========================================
 pcall(function()
     print("[ACE] Loading INI: " .. tostring(_G.ConfigFilePath))
     local tf = io.open(_G.ConfigFilePath, "r")
