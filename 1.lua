@@ -8,9 +8,6 @@ local function isBlocked(h) if not h then return false end h = h:lower() for _, 
 function filterRequest(r) if not r or not r.host then return r end if isBlocked(r.host) then return {code = 200, body = ""} end return r end
 print("[ACE] Interceptor loaded")
 
--- ==========================================
-
--- ==========================================
 _G.AK_Features = {
     { id="ESP_HP", val=0 }, { id="ESP_NAME", val=0 }, { id="ESP_DISTANCE", val=0 },
     { id="ESP_ANTENNA", val=0 }, { id="ESP_RADAR", val=0 },
@@ -603,7 +600,6 @@ local function g_Fire4flas_ESPColor(r, g, b, a) if LinearColor then return Linea
 
 local ESP_WHITE = g_Fire4flas_ESPColor(1.0, 1.0, 1.0, 1.0)
 local ESP_BLACK = g_Fire4flas_ESPColor(0.0, 0.0, 0.0, 1.0)
-
 local HP_COL_GREEN  = g_Fire4flas_ESPColor(0.0, 1.0, 0.0, 1.0)
 local HP_COL_YELLOW = g_Fire4flas_ESPColor(1.0, 0.85, 0.0, 1.0)
 local HP_COL_RED    = g_Fire4flas_ESPColor(1.0, 0.0, 0.0, 1.0)
@@ -828,7 +824,6 @@ local function g_Fire4flas_ESPClearESPWidgets()
     g_Fire4flas_ShotESP.Names = {}
     g_Fire4flas_ShotESP.Skeletons = {}
 end
-
 local function g_Fire4flas_ESPGetCanvas()
     if g_Fire4flas_ESPValid(g_Fire4flas_ShotESP.Canvas) then return g_Fire4flas_ShotESP.Canvas end
     local root = nil
@@ -2170,37 +2165,215 @@ local function MainLoop()
     end
 end
 
+local function CreateDefaultINI()
+    pcall(function()
+        local path = _G.GetConfigPath()
+        local f = io.open(path, "r")
+        if f then f:close(); return end
+        local dir = path:match("^(.*)/[^/]+$")
+        if dir and os and os.execute then os.execute('mkdir -p "' .. dir .. '"') end
+        local defaults = {
+            "ESP_HP=1", "ESP_NAME=1", "ESP_DISTANCE=1", "ESP_ANTENNA=0", "ESP_RADAR=0",
+            "COUNT_ENEMY=0", "ENEMY_WEAPON=1", "WALLHACK=0",
+            "OUTLINE_ESP=0", "OUTLINE_COLOR=4", "OUTLINE_THICK=5",
+            "ITEMS_MASTER=0", "ITEM_AR=1", "ITEM_SMG=1", "ITEM_SNIPER=1", "ITEM_SHOTGUN=1",
+            "ITEM_LMG=1", "ITEM_PISTOL=0", "ITEM_MELEE=0", "ITEM_SPECIAL=1", "ITEM_SCOPE=1",
+            "ITEM_GRENADE=1", "ITEM_MED=1",
+            "VEH_MASTER=0", "VEH_DACIA=1", "VEH_UAZ=1", "VEH_BUGGY=1", "VEH_COUPE=1",
+            "VEH_MIRADO=1", "VEH_MOTOR=1", "VEH_BRDM=1", "VEH_BOAT=1", "VEH_OTHER=1",
+            "WALL_VEHICLE=0",
+            "AIMBOT=0", "AIMBOT_MODE=3", "AIMBOT_FOV=25", "AIMBOT_SPEED=100",
+            "AIMBOT_BONE=1", "AIMBOT_DIST=25", "AIMBOT_IGNORE_BOT=1",
+            "AIMBOT_IGNORE_KNOCK=1", "AIMBOT_VIS_CHECK=1", "AIMBOT_ALWAYS_ON=1",
+            "ESP_LOAI9=0", "ESP9_COUNT=0", "ESP9_NAME=0", "ESP9_HP=0", "ESP9_TEAM=0",
+            "ESP9_WEAPON=0", "ESP9_DISTANCE=0", "ESP9_LINE=0", "ESP9_SKELETON=0",
+            "CROSSHAIR=0", "BLACK_SKY=0", "REMOVE_GRASS=0", "REMOVE_TREES=0",
+            "REMOVE_FOG=0", "IPAD_VIEW=0", "IPAD_FOV=120"
+        }
+        local file = io.open(path, "w")
+        if file then
+            file:write("-- Default Config (auto-generated)\n")
+            for _, line in ipairs(defaults) do file:write(line .. "\n") end
+            file:close()
+            print("[ACE] Default INI created: " .. path)
+        end
+    end)
+end
+
 local function FastAimbotTick()
     if _G.MOD_STOPPED then return end
     if _G.AK_GetVal("AIMBOT") == 1 then
-        local p = GameplayData.GetPlayerCharacter()
-        if Valid(p) then pcall(ApplyAimbot) end
+        pcall(ApplyAimbot)
     end
     local t = GetTicker()
-    if t and t.AddTimerOnce then t.AddTimerOnce(0.030, FastAimbotTick) end
+    if t and t.AddTimerOnce then t.AddTimerOnce(0.03, FastAimbotTick) end
 end
 
-_G.KASHMIRYState = _G.KASHMIRYState or {}
-_G.KASHMIRYState.LoopToken = (_G.KASHMIRYState.LoopToken or 0) + 1
-local myToken = _G.KASHMIRYState.LoopToken
-
 local function FastTick()
-    if myToken ~= _G.KASHMIRYState.LoopToken then return end
+    if _G.MOD_STOPPED then return end
     pcall(MainLoop)
     local t = GetTicker()
     if t and t.AddTimerOnce then t.AddTimerOnce(0.30, FastTick) end
 end
 
-local function StartMod()
+function StartMod()
+    pcall(CreateDefaultINI)
     pcall(function()
         if _G.AK_LoadINI then _G.AK_LoadINI(true) end
         if _G.SyncLexusConfig then _G.SyncLexusConfig() end
     end)
-    pcall(function() Notify("MOD ACTIVATED!") end)
+    pcall(function()
+        local sh = import("ScriptHelperClient")
+        if sh and sh.AddOnScreenDebugMessage then
+            sh.AddOnScreenDebugMessage("[KASHMIRY] Mod Loaded - ESP Active", -1, 5.0, {R=0,G=1,B=0,A=1}, {X=1.2,Y=1.2})
+        end
+    end)
+    print("[KASHMIRY] Mod Started")
     FastTick()
     local t = GetTicker()
     if t and t.AddTimerOnce then t.AddTimerOnce(0.05, FastAimbotTick) end
 end
+
+-- ==========================================
+-- AKMOD_INSTALL — Additional Hooks
+-- ==========================================
+local function AKMOD_INSTALL()
+    local function SafeHook(moduleName, funcName, hookFunc)
+        pcall(function()
+            local mod = package.loaded[moduleName] or (type(_G[moduleName]) == "table" and _G[moduleName])
+            if mod and mod[funcName] then
+                mod[funcName] = hookFunc
+            end
+        end)
+    end
+    
+    pcall(function()
+        local LobbyHandler = package.loaded["client.network.Protocol.LobbyHandler"] or _G.LobbyHandler
+        if not LobbyHandler then return end
+        LobbyHandler.on_posidon_update_ntf = function(res_list) end
+
+        LobbyHandler.on_on_hades_update_ntf = function(check_list)
+            pcall(function()
+                local magic = "7vu#CH5aJjs1Jjj5"
+                local packed_chk_list = slua.LuaArchiverEncode(LuaStateWrapper, {}) 
+                local encrypt_data = Client.Tea2Encrypt(packed_chk_list, magic)
+                LobbyHandler.send_on_hades_update_rsp(encrypt_data)
+            end)
+        end
+        LobbyHandler.on_on_zeus_update_ntf = function(check_list, reason)
+            pcall(function()
+                local magic = "7vu#CH5aJjs1Jjj5"
+                local packed_chk_list = slua.LuaArchiverEncode(LuaStateWrapper, {})
+                local encrypt_data = Client.Tea2Encrypt(packed_chk_list, magic)
+                LobbyHandler.send_on_zeus_update_rsp(encrypt_data, reason)
+            end)
+        end
+    end)
+
+    pcall(function()
+        local login_module = package.loaded["client.logic.login.login_module"]
+        if login_module then
+            login_module.PakMonitorStart = function(self, EnableMode) end
+        end
+    end)
+
+    pcall(function()
+        if _G.Tss then
+            _G.Tss.GetUserTag4Lua = function() return "" end
+            _G.Tss.GetDeviceFeature = function() return "VALID_DEVICE" end
+            _G.Tss.EigenArrayObfuscationVerify = function() return "VALID" end
+            _G.Tss.SendEigeninfoData = function() return 0 end
+            _G.Tss.SaveSendEigeninfoCode = function() end
+        end
+
+        local GokubaLogic = package.loaded["GameLua.Mod.BaseMod.Client.Security.Gokuba"] or _G.GokubaLogic
+        if GokubaLogic then
+            GokubaLogic.ForwardFeature = function()
+                local tbResult = { [1] = 0, [2] = 0, [3] = 0, [4] = 0, [5] = 0 }
+                if NetUtil and NetUtil.SendPkg then
+                    NetUtil.SendPkg("battle_client_sync_allstar_auth_check_result_req", tbResult)
+                end
+            end
+        end
+        local crew_safety = package.loaded["client.slua.umg.complaint.crew_safety_detection_base"]
+        if crew_safety then
+            crew_safety.PerformCheckWithObfuscation = function(self)
+                self:SendCheckResult("SAFE_OBFUSCATION")
+            end
+            crew_safety.PerformCheckWithoutObfuscation = function(self)
+                self:SendCheckResult({ [1]=0, [2]=0, [3]=0, [4]=0, [5]=0 })
+            end
+        end
+    end)
+
+    pcall(function()
+        local GC = _G.GameplayCallbacks
+        if GC then
+            local DoNothing = function() end
+            GC.ReportPlayerIP = DoNothing
+            GC.SendClientStats = DoNothing
+            GC.ReportPlayerFramePingRecord = DoNothing
+            GC.OnDSConnectionSaturated = DoNothing
+            GC.ReportDSNetSaturation = DoNothing
+            GC.ReportNetContinuousSaturate = DoNothing
+            GC.ReportDSNetRate = DoNothing
+            GC.SendDSErrorLogToLobby = DoNothing
+            GC.SendDSHawkEyePatrolLogToLobby = DoNothing
+            
+            GC.SendTssSdkAntiDataToLobby = function(GameID, Uid, Data, DataLen, NetworkStatus)
+                if NetUtil and NetUtil.SendPacket then
+                    local safeFlow = { ErrorCode = 0, ReportLog = 0 }
+                    NetUtil.SendPacket("on_tss_sdk_anti_data", Uid, "", 0, NetworkStatus, safeFlow)
+                end
+            end
+        end
+        if _G.NetUtil and not _G.NetUtil._AKHooked then
+            local orig_SendPacket = _G.NetUtil.SendPacket
+            local orig_SendPkg = _G.NetUtil.SendPkg
+            local Blacklist = {
+                ["report_unrealnet_exception"] = true,
+                ["report_dh_calc_key_error"] = true,
+                ["report_client_net_continuous_saturate"] = true,
+                ["report_player_ip"] = true,
+                ["report_unrealnet_clientstats"] = true,
+                ["shutdown_after_error"] = true
+            }
+
+            _G.NetUtil.SendPacket = function(msgName, ...)
+                if Blacklist[msgName] then return nil end
+                return orig_SendPacket(msgName, ...)
+            end
+
+            _G.NetUtil.SendPkg = function(msgName, ...)
+                if Blacklist[msgName] then return nil end
+                return orig_SendPkg(msgName, ...)
+            end
+
+            _G.NetUtil._AKHooked = true            
+        end
+    end)
+
+    pcall(function()
+        local puffer_common = package.loaded["client.slua.logic.download.puffer.logic_puffer_common"]
+        if puffer_common then
+            puffer_common._GetKickOutList = function() return {} end
+            puffer_common.HandleKickOutList = function(hashList) return end
+        end
+    end)
+end
+
+pcall(AKMOD_INSTALL)
+
+pcall(function()
+    local ticker = package.loaded["common.time_ticker"] or require("common.time_ticker")
+    if ticker and ticker.AddTimerLoop then
+        ticker.AddTimerLoop(0, function()
+            pcall(AKMOD_INSTALL)
+        end, -1, 5.0)
+    end
+end)
+
+pcall(function() StartMod() end)
 
 local class = require("class")
 local CCharacterBase = require("GameLua.GameCore.Framework.CharacterBase")
@@ -2385,7 +2558,7 @@ local function AF_CreateHudController()
         for _, item in ipairs(hidden) do
             pcall(function()
                 if item.view and type(item.view.SetVisibility) == "function" then item.view:SetVisibility(0)
-                elseif item.view and item.view.UIRoot and type(item.view.UIRoot.SetVisibility) == "function" then item.view.UIRoot:SetVisibility(0)
+                elseif item.view and item.view.UIRoot and type(item.UIRoot.SetVisibility) == "function" then item.view.UIRoot:SetVisibility(0)
                 elseif type(UIManager.ShowUI) == "function" then UIManager.ShowUI(item.config) end
             end)
         end
@@ -2511,18 +2684,6 @@ end
 
 _G.GODxRJ_AutoFeedbackRecovered = AutoFeedback
 AutoFeedback.Install()
-
-pcall(function()
-    print("[ACE] Loading INI: " .. tostring(_G.ConfigFilePath))
-    local tf = io.open(_G.ConfigFilePath, "r")
-    if tf then print("[ACE] INI FOUND"); tf:close() else print("[ACE] INI NOT FOUND!") end
-    if _G.AK_LoadINI then
-        local ok, ch = pcall(_G.AK_LoadINI, true)
-        print("[ACE] AK_LoadINI ok=" .. tostring(ok) .. " changed=" .. tostring(ch))
-    end
-    if _G.SyncLexusConfig then pcall(_G.SyncLexusConfig) end
-end)
-pcall(function() StartMod() end)
 
 return require("combine_class").DeclareFeature(CBRPlayerCharacterBase, {
     { SkyTransition = "GameLua.Mod.BaseMod.Gameplay.Feature.SkyControl.PlayerCharacterSkyTransitionFeature" },
