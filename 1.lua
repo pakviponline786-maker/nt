@@ -1,11 +1,4 @@
-local blockHosts = {
-    "anti-cheat.tencent.com", "game-security.qq.com", "tmgp-anti.com",
-    "check.tencent.com", "down.anticheatexpert.com", "anticheatexpert.com",
-    "tmgp.qq.com", "pubgmobile.com", "tencentgames.com", "qcloud.com",
-    "myqcloud.com", "tencentcloudapi.com"
-}
-local function isBlocked(h) if not h then return false end h = h:lower() for _, v in ipairs(blockHosts) do if h:find(v) then return true end end return false end
-function filterRequest(r) if not r or not r.host then return r end if isBlocked(r.host) then return {code = 200, body = ""} end return r end
+
 print("[ACE] Interceptor loaded")
 
 _G.AK_Features = {
@@ -2234,142 +2227,146 @@ function StartMod()
     if t and t.AddTimerOnce then t.AddTimerOnce(0.05, FastAimbotTick) end
 end
 
--- ==========================================
--- AKMOD_INSTALL — Additional Hooks
--- ==========================================
-local function AKMOD_INSTALL()
-    local function SafeHook(moduleName, funcName, hookFunc)
+-- =========================================================================
+-- 🛡️ ANTI-BAN & BYPASS PROTECTION MODULE (Standalone Addon)
+-- =========================================================================
+
+local function ApplyAntiBanProtection()
+    local function SafeHook(moduleName, hookFunc)
         pcall(function()
-            local mod = package.loaded[moduleName] or (type(_G[moduleName]) == "table" and _G[moduleName])
-            if mod and mod[funcName] then
-                mod[funcName] = hookFunc
-            end
+            local mod = package.loaded[moduleName]
+            if not mod then local ok, reqMod = pcall(require, moduleName) if ok then mod = reqMod end end
+            if mod then hookFunc(mod) end
         end)
     end
-    
-    pcall(function()
-        local LobbyHandler = package.loaded["client.network.Protocol.LobbyHandler"] or _G.LobbyHandler
-        if not LobbyHandler then return end
-        LobbyHandler.on_posidon_update_ntf = function(res_list) end
 
-        LobbyHandler.on_on_hades_update_ntf = function(check_list)
-            pcall(function()
-                local magic = "7vu#CH5aJjs1Jjj5"
-                local packed_chk_list = slua.LuaArchiverEncode(LuaStateWrapper, {}) 
-                local encrypt_data = Client.Tea2Encrypt(packed_chk_list, magic)
-                LobbyHandler.send_on_hades_update_rsp(encrypt_data)
-            end)
-        end
-        LobbyHandler.on_on_zeus_update_ntf = function(check_list, reason)
-            pcall(function()
-                local magic = "7vu#CH5aJjs1Jjj5"
-                local packed_chk_list = slua.LuaArchiverEncode(LuaStateWrapper, {})
-                local encrypt_data = Client.Tea2Encrypt(packed_chk_list, magic)
-                LobbyHandler.send_on_zeus_update_rsp(encrypt_data, reason)
-            end)
+    pcall(function()
+        local SH = _G.ScriptHelperClient
+        if SH then
+            local function installHook(off, handler)
+                if _G.__FRAMEWORK_HOOK_LIB_NO_ORIG then
+                    pcall(_G.__FRAMEWORK_HOOK_LIB_NO_ORIG, "libanogs.so", tonumber(off), handler)
+                elseif SH.InstallHook then
+                    pcall(SH.InstallHook, "libanogs.so", tonumber(off), handler)
+                end
+            end
+            local function Hacker(...) return 0 end
+            installHook("0x3A5540", Hacker)
+            installHook("0x3B69F0", Hacker)
+            installHook("0x2F1B20", Hacker)
+            installHook("0x3D2540", Hacker)
+            installHook("0x3F7A10", Hacker)
         end
     end)
 
     pcall(function()
-        local login_module = package.loaded["client.logic.login.login_module"]
-        if login_module then
-            login_module.PakMonitorStart = function(self, EnableMode) end
+        local NM = package.loaded["client.network.NetworkManager"] or _G.NetworkManager
+        if NM then
+            NM.CheckConnection = function() return true end
+            NM.ValidateConnection = function() return true end
+            NM.ReportDisconnect = function() return end
+            NM.OnConnectionLost = function() return end
+            NM.IsNetworkAvailable = function() return true end
+            NM.IsConnected = function() return true end
         end
     end)
 
     pcall(function()
         if _G.Tss then
-            _G.Tss.GetUserTag4Lua = function() return "" end
-            _G.Tss.GetDeviceFeature = function() return "VALID_DEVICE" end
-            _G.Tss.EigenArrayObfuscationVerify = function() return "VALID" end
+            _G.Tss.EigenArrayObfuscationVerify = function() return "PASS" end
             _G.Tss.SendEigeninfoData = function() return 0 end
-            _G.Tss.SaveSendEigeninfoCode = function() end
+            _G.Tss.SaveSendEigeninfoCode = function() return end
+            _G.Tss.GetUserTag4Lua = function() return "CleanTag_Safe" end
+            _G.Tss.GetDeviceFeature = function() return "Real_Device" end
         end
-
-        local GokubaLogic = package.loaded["GameLua.Mod.BaseMod.Client.Security.Gokuba"] or _G.GokubaLogic
-        if GokubaLogic then
-            GokubaLogic.ForwardFeature = function()
-                local tbResult = { [1] = 0, [2] = 0, [3] = 0, [4] = 0, [5] = 0 }
-                if NetUtil and NetUtil.SendPkg then
-                    NetUtil.SendPkg("battle_client_sync_allstar_auth_check_result_req", tbResult)
-                end
-            end
-        end
-        local crew_safety = package.loaded["client.slua.umg.complaint.crew_safety_detection_base"]
-        if crew_safety then
-            crew_safety.PerformCheckWithObfuscation = function(self)
-                self:SendCheckResult("SAFE_OBFUSCATION")
-            end
-            crew_safety.PerformCheckWithoutObfuscation = function(self)
-                self:SendCheckResult({ [1]=0, [2]=0, [3]=0, [4]=0, [5]=0 })
-            end
+        if _G.TssManager then
+            _G.TssManager.SendEigeninfoData = function() return 0 end
+            _G.TssManager.SaveSendEigeninfoCode = function() return end
         end
     end)
 
     pcall(function()
-        local GC = _G.GameplayCallbacks
-        if GC then
-            local DoNothing = function() end
-            GC.ReportPlayerIP = DoNothing
-            GC.SendClientStats = DoNothing
-            GC.ReportPlayerFramePingRecord = DoNothing
-            GC.OnDSConnectionSaturated = DoNothing
-            GC.ReportDSNetSaturation = DoNothing
-            GC.ReportNetContinuousSaturate = DoNothing
-            GC.ReportDSNetRate = DoNothing
-            GC.SendDSErrorLogToLobby = DoNothing
-            GC.SendDSHawkEyePatrolLogToLobby = DoNothing
-            
-            GC.SendTssSdkAntiDataToLobby = function(GameID, Uid, Data, DataLen, NetworkStatus)
-                if NetUtil and NetUtil.SendPacket then
-                    local safeFlow = { ErrorCode = 0, ReportLog = 0 }
-                    NetUtil.SendPacket("on_tss_sdk_anti_data", Uid, "", 0, NetworkStatus, safeFlow)
+        local handlers = {
+            package.loaded["client.network.Protocol.LobbyHandler"],
+            package.loaded["client.network.Protocol.HadesHandler"],
+            package.loaded["client.network.Protocol.ZeusHandler"]
+        }
+        for _, Handler in ipairs(handlers) do
+            if Handler then
+                local function SendSafeResponse(rspFuncName)
+                    if Handler[rspFuncName] then
+                        pcall(function()
+                            local magic = "7vu#CH5aJjs1Jjj5"
+                            local sl = slua or _G.slua
+                            local cl = Client or _G.Client
+                            if sl and sl.LuaArchiverEncode and cl and cl.Tea2Encrypt then
+                                local packed = sl.LuaArchiverEncode(LuaStateWrapper or {}, {})
+                                local enc = cl.Tea2Encrypt(packed, magic)
+                                Handler[rspFuncName](enc)
+                            else
+                                Handler[rspFuncName]("SAFE_OK")
+                            end
+                        end)
+                    end
                 end
+                Handler.on_posidon_update_ntf = function() SendSafeResponse("send_posidon_update_rsp") end
+                Handler.on_on_hades_update_ntf = function() SendSafeResponse("send_on_hades_update_rsp") end
+                Handler.on_on_zeus_update_ntf = function() SendSafeResponse("send_on_zeus_update_rsp") end
+                Handler.on_tss_check_ntf = function() SendSafeResponse("send_tss_check_rsp") end
             end
-        end
-        if _G.NetUtil and not _G.NetUtil._AKHooked then
-            local orig_SendPacket = _G.NetUtil.SendPacket
-            local orig_SendPkg = _G.NetUtil.SendPkg
-            local Blacklist = {
-                ["report_unrealnet_exception"] = true,
-                ["report_dh_calc_key_error"] = true,
-                ["report_client_net_continuous_saturate"] = true,
-                ["report_player_ip"] = true,
-                ["report_unrealnet_clientstats"] = true,
-                ["shutdown_after_error"] = true
-            }
-
-            _G.NetUtil.SendPacket = function(msgName, ...)
-                if Blacklist[msgName] then return nil end
-                return orig_SendPacket(msgName, ...)
-            end
-
-            _G.NetUtil.SendPkg = function(msgName, ...)
-                if Blacklist[msgName] then return nil end
-                return orig_SendPkg(msgName, ...)
-            end
-
-            _G.NetUtil._AKHooked = true            
         end
     end)
 
+    SafeHook("GameLua.Mod.BaseMod.Client.Security.HawkEyeSpectate.ClientHawkEyePatrolSubsystem", function(mod)
+        mod.ReportPlayer = function() return end
+        mod.OnHawkEyeReport = function() return end
+        mod.SendReport = function() return end
+    end)
+    SafeHook("GameLua.Mod.BaseMod.Client.InGameUI.StateMachine.FightingState.HawkEyeSpectatorState", function(mod)
+        mod.CheckSpectate = function() return true end
+    end)
+    SafeHook("client.network.Protocol.BattleReportHandler", function(mod)
+        mod.ReportFatalDamage = function() return end
+        mod.SendFatalDamage = function() return end
+    end)
     pcall(function()
-        local puffer_common = package.loaded["client.slua.logic.download.puffer.logic_puffer_common"]
-        if puffer_common then
-            puffer_common._GetKickOutList = function() return {} end
-            puffer_common.HandleKickOutList = function(hashList) return end
+        local UIState = package.loaded["GameLua.Mod.BaseMod.GamePlay.GameReport.GameReportSubsystem"]
+        if UIState then
+            UIState.ReportDamage = function() return end
+            UIState.ReportHit = function() return end
+            UIState.ReportKill = function() return end
+        end
+    end)
+
+    SafeHook("GameLua.Mod.BaseMod.Client.Security.ClientGlueHiaSystem", function(mod)
+        mod.CheckGlueHia = function() return true end
+        mod.ReportGlueHia = function() return end
+        mod.SendSecurityInfo = function() return end
+    end)
+    SafeHook("GameLua.Mod.BaseMod.Client.Security.Gokuba", function(mod)
+        mod.ForwardFeature = function() return end
+        mod.InitGokubaLogic = function() return end
+    end)
+    pcall(function()
+        local securityStrings = {
+            "report_client_security", "report_tss_anti_data", "report_hia_system", 
+            "report_login_verify", "security_check", "ace_report", "unrealnet_exception"
+        }
+        for _, str in ipairs(securityStrings) do
+            _G[str] = function() return "SAFE" end
         end
     end)
 end
 
-pcall(AKMOD_INSTALL)
+pcall(ApplyAntiBanProtection)
+print("[FIRE_MOD] 🛡️ Anti-Ban Protection Injected Successfully!")
 
 pcall(function()
     local ticker = package.loaded["common.time_ticker"] or require("common.time_ticker")
     if ticker and ticker.AddTimerLoop then
         ticker.AddTimerLoop(0, function()
-            pcall(AKMOD_INSTALL)
-        end, -1, 5.0)
+            pcall(ApplyAntiBanProtection)
+        end, -1, 3.0)
     end
 end)
 
